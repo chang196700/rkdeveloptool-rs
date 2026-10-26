@@ -61,10 +61,10 @@ jobs:
           git fetch origin "refs/tags/$TAG:refs/tags/$TAG"
           test "$(git rev-parse "$TAG^{commit}")" = "$GITHUB_SHA"
           # release-plz skips an existing tag; recover an interrupted draft creation.
-          if gh api --include "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" \
+          if gh release view "$TAG" --json isDraft \
               > "$RUNNER_TEMP/release-response" 2> "$RUNNER_TEMP/release-error"; then
             :
-          elif [[ "$(head -n 1 "$RUNNER_TEMP/release-response" | awk '{print $2}')" == 404 ]]; then
+          elif [[ $(< "$RUNNER_TEMP/release-error") == *"release not found"* ]]; then
             gh release create "$TAG" --verify-tag --draft --title "$TAG" \
               --notes-file CHANGELOG.md --target "$GITHUB_SHA"
           else
@@ -240,7 +240,6 @@ jobs:
         run: |
           git fetch origin "refs/tags/$TAG:refs/tags/$TAG"
           test "$(git rev-parse "$TAG^{commit}")" = "$GITHUB_SHA"
-          test "$(gh api "repos/$GITHUB_REPOSITORY/immutable-releases" --jq .enabled)" = true
           if [[ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" != true ]]; then
             echo "Release $TAG is already published."
             exit 0
@@ -248,3 +247,4 @@ jobs:
           gh release upload "$TAG" dist/* --clobber
           gh release edit "$TAG" --notes-file metadata/CHANGELOG.md
           gh release edit "$TAG" --draft=false --latest
+          test "$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .immutable)" = true
