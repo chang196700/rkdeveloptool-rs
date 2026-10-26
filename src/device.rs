@@ -179,7 +179,11 @@ impl Device {
             "short Rockusb response: expected {length}, received {}",
             data.len()
         );
-        Self::success(self.status(tag, false)?)?;
+        // Some Rockchip loaders put the response length, in big-endian order,
+        // in the CSW residue for metadata queries. The exact payload length
+        // above, matching command tag and successful status validate the read.
+        let status = self.status(tag, false)?;
+        ensure!(status.status == 0, "device rejected Rockusb command");
         Ok(data)
     }
 

@@ -1,3 +1,7 @@
+[workspace]
+members = ["crates/rockusb-driver"]
+resolver = "3"
+
 [package]
 name = "rkdeveloptool-rs"
 version = "0.1.0"
@@ -21,6 +25,9 @@ chrono = "0.4.45"
 crc = "3.4.0"
 nusb = "0.2.9"
 uuid = { version = "1.29.0", features = ["v4"] }
+
+[target.'cfg(windows)'.dependencies]
+rockusb-driver = { version = "0.1.0", path = "crates/rockusb-driver" }
 
 [profile.release]
 lto = "thin"

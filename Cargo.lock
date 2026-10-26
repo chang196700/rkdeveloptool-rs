@@ -293,7 +293,15 @@ dependencies = [
  "chrono",
  "crc",
  "nusb",
+ "rockusb-driver",
  "uuid",
+]
+
+[[package]]
+name = "rockusb-driver"
+version = "0.1.0"
+dependencies = [
+ "windows-sys",
 ]
 
 [[package]]

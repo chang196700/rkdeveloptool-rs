@@ -47,6 +47,20 @@
 
 ## 实机验收
 
-以下项目在 Linux、macOS、Windows 上均待验证：设备枚举及权限、Maskrom ENTRY471/472 下载及特殊尾包、下载后重新枚举、Loader 查询、存储切换、指定测试区域写入回读、分区表写入、Loader 升级、介质擦除与重启。
+初始移植时，以下项目在 Linux、macOS、Windows 上均未进行实机验证：设备枚举及权限、Maskrom ENTRY471/472 下载及特殊尾包、下载后重新枚举、Loader 查询、存储切换、指定测试区域写入回读、分区表写入、Loader 升级、介质擦除与重启。后续 Windows 验证见下文。
 
 上述静态及离线结果不表示具体芯片、ROM 版本或存储介质已经完成硬件验收。
+
+## Windows 原厂驱动实机验证
+
+后续于 2026-10-26 在 Windows x86_64 上完成以下验证，补充上述初始移植记录。设备 VID/PID 为 `2207:350d`，保留 Fuzhou Rockchip `Rockusb 5.11.0.0` 驱动；使用 Rust 1.98.1 MSVC 原生构建。
+
+- `rockusb-driver` 脱离 Workspace 独立进行 Windows 目标编译通过；依赖只有 `windows-sys` 和其 `windows-link`。
+- Workspace 的 Linux 构建、Clippy、文档及 Windows GNU、macOS ARM64 交叉检查通过。
+- 使用 `rk3562_spl_loader_v1.09.107.bin` 执行 `db`，RAM 下载成功；随后设备重新枚举，`td`、`rid`、`rfi`、`rci`、`rcb` 均通过。
+- Flash ID 返回 `EMMC `，Flash 容量为 15,269,888 个扇区（7456 MiB）。
+- 实机发现元信息查询的成功 CSW 包含大端响应长度；完整数据已收到。修正仅限此类读取的校验规则。
+- 临时调用公开 `read_lba(0, 2049)`，结果与分开的 2048 扇区及 1 扇区读取完全一致，验证原厂驱动的 1 MiB 分块边界。
+- 临时调用独立 crate 的 100 ms 超时读取，约 110 ms 后取消返回，随后设备就绪查询仍成功。
+
+以上调用器及构建目录均位于临时目录，未新增仓库测试。未替换 Windows 驱动，未执行 Flash 写入、擦除或升级 Loader。Linux、macOS、WinUSB 后端的实机操作以及其余破坏性操作仍未验收。

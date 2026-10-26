@@ -1,0 +1,20 @@
+[package]
+name = "rockusb-driver"
+version = "0.1.0"
+edition = "2024"
+description = "Native Rust access to the Rockchip Rockusb driver on Windows"
+license = "MIT OR Apache-2.0 OR GPL-2.0-or-later"
+repository = "https://github.com/chang196700/rkdeveloptool-rs"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = [
+    "Win32_Devices_DeviceAndDriverInstallation",
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Threading",
+] }
+
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"

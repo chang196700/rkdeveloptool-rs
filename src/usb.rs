@@ -99,14 +99,80 @@ pub fn list_devices() -> Result<Vec<DeviceInfo>> {
     Ok(result)
 }
 
-pub(crate) struct Transport {
+pub(crate) enum Transport {
+    Nusb(NusbTransport),
+    #[cfg(windows)]
+    Rockusb(rockusb_driver::Device),
+}
+
+impl Transport {
+    pub(crate) fn open(info: &DeviceInfo) -> Result<Self> {
+        #[cfg(windows)]
+        if info
+            .inner
+            .driver()
+            .is_some_and(|driver| driver.eq_ignore_ascii_case("Rockusb"))
+        {
+            return rockusb_driver::Device::open(info.inner.instance_id())
+                .map(Self::Rockusb)
+                .context("open device using the Rockchip Rockusb driver");
+        }
+        NusbTransport::open(info).map(Self::Nusb)
+    }
+
+    pub(crate) fn write(&mut self, data: &[u8]) -> Result<()> {
+        match self {
+            Self::Nusb(transport) => transport.write(data),
+            #[cfg(windows)]
+            Self::Rockusb(transport) => transport
+                .write(data, Duration::from_secs(60))
+                .context("Rockusb bulk OUT"),
+        }
+    }
+
+    pub(crate) fn read(&mut self, length: usize, timeout: Option<Duration>) -> Result<Vec<u8>> {
+        let data = self.read_packet(length, timeout)?;
+        ensure!(
+            data.len() <= length,
+            "oversized bulk response: expected at most {length}, received {}",
+            data.len()
+        );
+        Ok(data)
+    }
+
+    pub(crate) fn read_packet(
+        &mut self,
+        length: usize,
+        timeout: Option<Duration>,
+    ) -> Result<Vec<u8>> {
+        match self {
+            Self::Nusb(transport) => transport.read_packet(length, timeout),
+            #[cfg(windows)]
+            Self::Rockusb(transport) => transport
+                .read_packet(length, timeout)
+                .context("Rockusb bulk IN"),
+        }
+    }
+
+    pub(crate) fn control_download(&self, index: u16, data: &[u8]) -> Result<()> {
+        match self {
+            Self::Nusb(transport) => transport.control_download(index, data),
+            #[cfg(windows)]
+            Self::Rockusb(transport) => transport
+                .control_download(index, data, Duration::from_secs(60))
+                .context("Maskrom control download"),
+        }
+    }
+}
+
+pub(crate) struct NusbTransport {
     interface: Interface,
     input: Endpoint<Bulk, In>,
     output: Endpoint<Bulk, Out>,
     _device: nusb::Device,
 }
 
-impl Transport {
+impl NusbTransport {
     pub(crate) fn open(info: &DeviceInfo) -> Result<Self> {
         let device = info.inner.open().wait().with_context(|| {
             format!(
@@ -201,16 +267,6 @@ impl Transport {
             completion.actual_len
         );
         Ok(())
-    }
-
-    pub(crate) fn read(&mut self, length: usize, timeout: Option<Duration>) -> Result<Vec<u8>> {
-        let data = self.read_packet(length, timeout)?;
-        ensure!(
-            data.len() <= length,
-            "oversized bulk response: expected at most {length}, received {}",
-            data.len()
-        );
-        Ok(data)
     }
 
     // Status resynchronization must be able to discard stale full packets.

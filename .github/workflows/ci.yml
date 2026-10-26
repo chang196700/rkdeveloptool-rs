@@ -19,15 +19,15 @@ jobs:
       - name: Install stable Rust
         run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
       - name: Check library and CLI
-        run: cargo +stable check --all-targets --locked
+        run: cargo +stable check --workspace --all-targets --locked
       - name: Build release
-        run: cargo +stable build --release --locked
+        run: cargo +stable build --workspace --release --locked
       - name: Check formatting
         if: runner.os == 'Linux'
-        run: cargo +stable fmt --check
+        run: cargo +stable fmt --all --check
       - name: Clippy
         if: runner.os == 'Linux'
-        run: cargo +stable clippy --all-targets --locked -- -D warnings
+        run: cargo +stable clippy --workspace --all-targets --locked -- -D warnings
       - name: Library documentation
         if: runner.os == 'Linux'
-        run: cargo +stable doc --no-deps --locked
+        run: cargo +stable doc --workspace --no-deps --locked

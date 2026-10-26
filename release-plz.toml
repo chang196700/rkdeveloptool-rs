@@ -10,3 +10,7 @@ git_release_draft = true
 git_release_latest = false
 release_always = true
 changelog_path = "CHANGELOG.md"
+
+[[package]]
+name = "rockusb-driver"
+release = false

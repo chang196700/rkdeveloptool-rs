@@ -132,12 +132,12 @@ jobs:
       - name: Check release source
         if: matrix.target == 'x86_64-unknown-linux-musl'
         run: |
-          cargo +stable fmt --check
-          cargo +stable check --all-targets --locked
-          cargo +stable clippy --all-targets --locked -- -D warnings
-          cargo +stable doc --no-deps --locked
+          cargo +stable fmt --all --check
+          cargo +stable check --workspace --all-targets --locked
+          cargo +stable clippy --workspace --all-targets --locked -- -D warnings
+          cargo +stable doc --workspace --no-deps --locked
       - name: Build release
-        run: cargo +stable build --release --locked --target "$TARGET"
+        run: cargo +stable build --package rkdeveloptool-rs --bin rkdeveloptool --release --locked --target "$TARGET"
       - name: Check binary version
         run: |
           executable="target/$TARGET/release/rkdeveloptool"

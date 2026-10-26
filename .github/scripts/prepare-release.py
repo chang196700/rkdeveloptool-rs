@@ -68,7 +68,7 @@ with tempfile.TemporaryDirectory(prefix="rkdeveloptool-release-") as directory:
     def set_version(value, manifest="Cargo.toml"):
         version_tuple(value)
         run("release-plz", "set-version", "--config", str(version_config),
-            "--manifest-path", str(Path(manifest).resolve()), value)
+            "--manifest-path", str(Path(manifest).resolve()), f"rkdeveloptool-rs@{value}")
 
     if previous_tag:
         # Source tags retain the repository's original Cargo version. Normalize
@@ -83,14 +83,15 @@ with tempfile.TemporaryDirectory(prefix="rkdeveloptool-release-") as directory:
         update_config.write_text(
             Path("release-plz.toml").read_text().replace("git_only = true", "git_only = false", 1)
         )
-        run("release-plz", "update", "--allow-dirty", "--config", str(update_config),
+        run("release-plz", "update", "--package", "rkdeveloptool-rs",
+            "--allow-dirty", "--config", str(update_config),
             "--registry-manifest-path", str(baseline / "Cargo.toml"))
         if version_tuple(version()) <= version_tuple(previous_version):
             # A main push that only changes CI/docs still gets its own release.
             major, minor, patch = version_tuple(previous_version)
             set_version(f"{major}.{minor}.{patch + 1}")
     else:
-        run("release-plz", "update", "--allow-dirty")
+        run("release-plz", "update", "--package", "rkdeveloptool-rs", "--allow-dirty")
 
     if current_tag and version() != current_tag[1:]:
         set_version(current_tag[1:])

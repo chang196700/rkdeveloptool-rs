@@ -1,6 +1,6 @@
 # rkdeveloptool-rs
 
-Rockchip [rkdeveloptool](https://github.com/rockchip-linux/rkdeveloptool) 的 Rust 移植，提供同步 Rust 库和 `rkdeveloptool` 命令行程序。USB 层使用纯 Rust 的 `nusb`，支持 Linux、macOS 和 Windows，无需安装 libusb 或编译原 C++ 项目。
+Rockchip [rkdeveloptool](https://github.com/rockchip-linux/rkdeveloptool) 的 Rust 移植，提供同步 Rust 库和 `rkdeveloptool` 命令行程序。USB 层使用纯 Rust 的 `nusb`，Windows 原厂驱动由独立的 `rockusb-driver` crate 支持，无需安装 libusb 或编译原 C++ 项目。
 
 移植基线为 `304f073752fd25c854e1bcf05d8e7f925b1f4e14`。许可证为 **GPL-2.0-or-later**，原许可证正文保存在 [LICENSE](LICENSE)，来源及行为差异见 [UPSTREAM.md](UPSTREAM.md)。
 
@@ -19,7 +19,7 @@ cargo install --path . --locked
 
 - Linux：将 [99-rk-rockusb.rules](99-rk-rockusb.rules) 安装到 `/etc/udev/rules.d/`，执行 `sudo udevadm control --reload-rules`，然后重新连接设备。规则通过 `uaccess` 授权本机登录用户；无桌面的主机可按本地用户组策略调整规则，或使用 root 运行。
 - macOS：使用系统 IOKit，不依赖 Homebrew libusb。程序在设备未配置时选择兼容的 USB 配置；接口必须能够由用户程序占用。
-- Windows：为 Rockchip 设备的 Maskrom 和 Loader 模式分别绑定 **WinUSB**。可通过 Zadig 安装；原厂专用 Rockusb 驱动不能直接供 nusb 使用。程序不安装或替换系统驱动。
+- Windows：支持原厂 **Rockusb** 驱动，也支持 **WinUSB**；程序根据设备当前绑定的驱动自动选择后端，不安装或替换系统驱动。
 
 ## 命令
 
