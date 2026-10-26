@@ -66,7 +66,7 @@ jobs:
             :
           elif [[ $(< "$RUNNER_TEMP/release-error") == *"release not found"* ]]; then
             gh release create "$TAG" --verify-tag --draft --title "$TAG" \
-              --notes-file CHANGELOG.md --target "$GITHUB_SHA"
+              --generate-notes --target "$GITHUB_SHA"
           else
             cat "$RUNNER_TEMP/release-error" >&2
             exit 1
@@ -80,7 +80,6 @@ jobs:
           path: |
             Cargo.toml
             Cargo.lock
-            CHANGELOG.md
           if-no-files-found: error
           overwrite: true
           retention-days: 30
@@ -215,11 +214,6 @@ jobs:
           pattern: binaries-*
           path: dist
           merge-multiple: true
-      - name: Download release notes
-        uses: actions/download-artifact@v8.0.2
-        with:
-          name: release-metadata
-          path: metadata
       - name: Generate checksums
         run: |
           python3 - <<'PY'
@@ -245,6 +239,5 @@ jobs:
             exit 0
           fi
           gh release upload "$TAG" dist/* --clobber
-          gh release edit "$TAG" --notes-file metadata/CHANGELOG.md
           gh release edit "$TAG" --draft=false --latest
           test "$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .immutable)" = true

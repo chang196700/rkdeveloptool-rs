@@ -102,21 +102,12 @@ tag = f"v{release_version}"
 if previous_tag and version_tuple(release_version) <= version_tuple(previous_tag[1:]):
     raise ValueError(f"{tag} must be newer than {previous_tag}")
 
-# Keep the generated changelog as Release notes, including CI/docs-only pushes
-# and first-release/draft retries that have no generated changelog section.
+# Supply a current-version entry when CI/docs-only changes have no changelog.
+# release-plz reads this entry to create the Release description by default.
 changelog = Path("CHANGELOG.md")
-notes = changelog.read_text() if changelog.exists() else f"# {tag}\n"
-commit_range = f"{previous_tag}..HEAD" if previous_tag else "HEAD"
-commits = output("git", "log", "--reverse", "--format=- %s (%h)", commit_range)
-repository = os.environ.get("GITHUB_REPOSITORY", "chang196700/rkdeveloptool-rs")
-notes += f"\n## Commits\n\n{commits}\n"
-if previous_tag:
-    notes += f"\n[Full changelog](https://github.com/{repository}/compare/{previous_tag}...{tag})\n"
-notes += (
-    "\n## Verify downloads\n\n"
-    "Check `SHA256SUMS`, then verify the build provenance:\n\n"
-    f"```sh\ngh attestation verify <archive> --repo {repository}\n```\n"
-)
-changelog.write_text(notes)
+if not changelog.exists():
+    commit_range = f"{previous_tag}..HEAD" if previous_tag else "HEAD"
+    commits = output("git", "log", "--reverse", "--format=- %s (%h)", commit_range)
+    changelog.write_text(f"## [{release_version}]\n\n### Changed\n\n{commits}\n")
 print(f"Prepared {tag} from {head}; generated files stay in the build workspace.")
 emit(ready="true", tag=tag, version=release_version)
