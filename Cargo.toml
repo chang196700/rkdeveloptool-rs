@@ -1,0 +1,26 @@
+[package]
+name = "rkdeveloptool-rs"
+version = "0.1.0"
+edition = "2024"
+description = "Rust implementation of Rockchip rkdeveloptool"
+license = "GPL-2.0-or-later"
+readme = "README.md"
+
+[lib]
+name = "rkdeveloptool"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rkdeveloptool"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.104"
+chrono = "0.4.45"
+crc = "3.4.0"
+nusb = "0.2.9"
+uuid = { version = "1.29.0", features = ["v4"] }
+
+[profile.release]
+lto = "thin"
+strip = true

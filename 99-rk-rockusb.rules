@@ -1,0 +1,4 @@
+# Rockchip devices (including new product IDs recognized by rkdeveloptool).
+SUBSYSTEM=="usb", ATTR{idVendor}=="2207", TAG+="uaccess"
+# Legacy RK27xx vendor ID.
+SUBSYSTEM=="usb", ATTR{idVendor}=="071b", TAG+="uaccess"
