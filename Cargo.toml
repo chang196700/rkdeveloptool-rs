@@ -5,6 +5,7 @@ edition = "2024"
 description = "Rust implementation of Rockchip rkdeveloptool"
 license = "GPL-2.0-or-later"
 readme = "README.md"
+repository = "https://github.com/chang196700/rkdeveloptool-rs"
 
 [lib]
 name = "rkdeveloptool"

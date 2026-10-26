@@ -1,0 +1,12 @@
+[workspace]
+git_only = true
+publish = false
+semver_check = false
+dependencies_update = false
+git_tag_name = "v{{ version }}"
+git_release_name = "v{{ version }}"
+git_release_enable = true
+git_release_draft = true
+git_release_latest = false
+release_always = true
+changelog_path = "CHANGELOG.md"
